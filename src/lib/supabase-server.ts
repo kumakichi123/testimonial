@@ -1,11 +1,12 @@
-﻿import { cookies, headers } from "next/headers"
-import { createServerClient } from "@supabase/ssr"
-import type { SupabaseClient } from "@supabase/supabase-js"
+﻿import { cookies, headers } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+// 戻り値の型注釈は付けない（各バージョン差異を吸収）
+import type { Database } from "@/lib/database.types";
 
-export function createServerSupabase(): SupabaseClient {
-  const cookieStore = cookies()
+export function createServerSupabase() {
+  const cookieStore = cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -14,11 +15,10 @@ export function createServerSupabase(): SupabaseClient {
         setAll: (cookiesToSet) => {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              // `cookies()` が読み取り専用の場合があるため、try/catch で保護
-              cookieStore.set?.(name, value, options)
-            })
+              cookieStore.set?.(name, value, options);
+            });
           } catch (error) {
-            console.warn("Supabase cookie setAll failed", error)
+            console.warn("Supabase cookie setAll failed", error);
           }
         },
       },
@@ -28,5 +28,5 @@ export function createServerSupabase(): SupabaseClient {
         },
       },
     }
-  )
+  );
 }

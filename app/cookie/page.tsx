@@ -40,7 +40,7 @@ const CookiePolicyPage = () => (
     <header className="space-y-4">
       <h1 className="text-3xl font-semibold text-gray-900">クッキーポリシー</h1>
       <p className="text-gray-600">
-        Testimonial SaaSにおけるCookieおよび類似技術の利用方針について説明します。
+       テスティモにおけるCookieおよび類似技術の利用方針について説明します。
       </p>
     </header>
     <section className="space-y-10">
