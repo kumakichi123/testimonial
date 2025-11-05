@@ -1,9 +1,9 @@
 'use client'
 import { createBrowserClient } from '@supabase/ssr'
-import { Database } from '@/lib/database.types'
-import { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
 
-export function createBrowserSupabase(): SupabaseClient<Database, 'public'> {
+// ① 推奨: 型注釈を外して推論に任せる
+export function createBrowserSupabase() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
