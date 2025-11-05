@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signUp } from './actions'
 import Link from 'next/link';
 
@@ -15,7 +15,7 @@ const inputStyles: React.CSSProperties = {
   marginBottom: '16px'
 }
 
-export default function SignUp() {
+function SignUpForm() {
   const searchParams = useSearchParams();
   const urlError = searchParams.get('error');
 
@@ -72,5 +72,13 @@ export default function SignUp() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function SignUp() {
+  return (
+    <Suspense>
+      <SignUpForm />
+    </Suspense>
   )
 }

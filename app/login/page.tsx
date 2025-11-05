@@ -1,7 +1,8 @@
-"use client"
+'use client'
 import Link from "next/link"
 import { signIn } from "./actions"
 import { useSearchParams } from "next/navigation"
+import { Suspense } from 'react'
 
 const inputStyles: React.CSSProperties = {
   width: '100%',
@@ -13,7 +14,7 @@ const inputStyles: React.CSSProperties = {
   marginBottom: '16px'
 }
 
-export default function Login() {
+function LoginForm() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -41,6 +42,14 @@ export default function Login() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function Login() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }
 
