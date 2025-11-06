@@ -2,15 +2,17 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@supabase/supabase-js"
 
-const bodySchema = z.object({
-  name: z.string().min(1),
-  problem: z.string().min(1),
-  result: z.string().min(1),
-  content: z.string().min(1),
-  heard_from: z.string().optional().default(""),
-  rating: z.coerce.number().int().min(1).max(5),
-  reason: z.string().optional().default(""),
-})
+const bodySchema = z
+  .object({
+    name: z.string().trim().min(1),
+    comment: z.string().trim().min(1),
+    rating: z.coerce.number().int().min(1).max(5),
+    consent: z.string().optional(),
+  })
+  .refine((value) => value.consent === "on", {
+    message: "consent required",
+    path: ["consent"],
+  })
 
 export async function POST(
   req: Request,
@@ -19,12 +21,9 @@ export async function POST(
   const formData = await req.formData()
   const parsed = bodySchema.parse({
     name: formData.get("name"),
-    problem: formData.get("problem"),
-    result: formData.get("result"),
-    content: formData.get("content"),
-    heard_from: formData.get("heard_from") ?? "",
+    comment: formData.get("comment"),
     rating: formData.get("rating"),
-    reason: formData.get("reason") ?? "",
+    consent: formData.get("consent"),
   })
 
   const supa = createClient(
@@ -48,12 +47,8 @@ export async function POST(
       company_id: form.company_id,
       form_id: form.id,
       name: parsed.name,
-      problem: parsed.problem,
-      result: parsed.result,
-      content: parsed.content,
+      content: parsed.comment,
       rating: parsed.rating,
-      heard_from: parsed.heard_from,
-      reason: parsed.reason,
     })
     .select("id, company_id")
     .single()

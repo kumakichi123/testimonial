@@ -51,17 +51,25 @@ export async function POST(_: Request, { params }: RouteParams) {
   }
   const autoPublishEnabled = Boolean(companySettings?.auto_publish_high_rating);
 
-  // 4) Dify 実行
+  // 4) Dify の実行
+  const comment = typeof response.content === "string" ? response.content : "";
+
+  const name =
+    typeof response.name === "string" && response.name.trim().length > 0
+      ? response.name.trim()
+      : "匿名";
+  const rating =
+    typeof response.rating === "number" && Number.isFinite(response.rating)
+      ? response.rating
+      : null;
+
   const workflowPayload = {
     user: response.id,
     response_mode: "blocking",
     inputs: {
-      problem: response.problem,
-      result: response.result,
-      reason: response.reason ?? "",
-      rating: response.rating,
-      request_title: response.name,
-      content: response.content ?? "",
+      name,
+      rating,
+      comment,
     },
   };
 
@@ -89,11 +97,12 @@ export async function POST(_: Request, { params }: RouteParams) {
   const json = await difyRes.json();
 
   // Dify の出力を安全にパース
-  // 期待形: { data: { outputs: { ai_headline, ai_body, ai_bullets } } }
-  const outputsRaw: unknown =
-    json?.data?.outputs ??
-    json?.data?.outputs?.outputs ?? // ワークフローによっては二重にネストされるケース
-    {};
+  // 期待形: { data: { outputs: { outputs: '{ "ai_headline": ... }' } } }
+  let outputsRaw: unknown = json?.data?.outputs ?? {};
+
+  if (outputsRaw && typeof outputsRaw === 'object' && 'outputs' in outputsRaw) {
+    outputsRaw = (outputsRaw as { outputs: unknown }).outputs;
+  }
 
   let outputs: Record<string, unknown>;
   if (typeof outputsRaw === "string") {
@@ -107,6 +116,8 @@ export async function POST(_: Request, { params }: RouteParams) {
   } else {
     outputs = {};
   }
+
+  console.log("Parsed Dify outputs:", outputs);
 
   const headline = typeof outputs.ai_headline === "string" ? outputs.ai_headline : "";
   const bodyText = typeof outputs.ai_body === "string" ? outputs.ai_body : "";
@@ -131,8 +142,8 @@ export async function POST(_: Request, { params }: RouteParams) {
   // 6) 自動公開の判定と適用
   const shouldAutoPublish =
     autoPublishEnabled &&
-    typeof response.rating === "number" &&
-    response.rating >= 4 &&
+    typeof rating === "number" &&
+    rating >= 4 &&
     testimonial.is_public !== true;
 
   if (shouldAutoPublish) {

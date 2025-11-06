@@ -28,10 +28,7 @@ const TABS = [
 
 type ResponseRecord = {
   name?: string | null;
-  problem?: string | null;
-  result?: string | null;
-  reason?: string | null;
-  heard_from?: string | null;
+  content?: string | null;
   rating?: number | null;
   created_at?: string | null;
 };
@@ -575,9 +572,7 @@ function RawTestimonialCard({ testimonial }: { testimonial: TestimonialRecord })
   const name = testimonial.responses?.name?.trim() || "匿名";
   const rating = testimonial.responses?.rating;
   const createdAt = formatDisplayDate(testimonial.responses?.created_at);
-  const problem = testimonial.responses?.problem?.trim() || "未回答";
-  const result = testimonial.responses?.result?.trim() || "未回答";
-  const heardFrom = testimonial.responses?.heard_from?.trim() || "未回答";
+  const comment = testimonial.responses?.content?.trim() || "未回答";
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -604,16 +599,8 @@ function RawTestimonialCard({ testimonial }: { testimonial: TestimonialRecord })
         <div className="border-t border-slate-100 bg-white px-6 pb-6 pt-5 sm:px-7">
           <dl className="space-y-4 text-sm text-slate-700">
             <div>
-              <dt className="font-semibold text-slate-900">導入前の課題</dt>
-              <dd className="mt-1 whitespace-pre-wrap leading-7">{problem}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-slate-900">導入後の変化</dt>
-              <dd className="mt-1 whitespace-pre-wrap leading-7">{result}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-slate-900">どこで知りましたか？</dt>
-              <dd className="mt-1 whitespace-pre-wrap leading-7">{heardFrom}</dd>
+              <dt className="font-semibold text-slate-900">コメント</dt>
+              <dd className="mt-1 whitespace-pre-wrap leading-7">{comment}</dd>
             </div>
           </dl>
         </div>
