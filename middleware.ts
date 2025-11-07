@@ -9,8 +9,8 @@ export async function middleware(req: NextRequest) {
   // 通常ページは自己オリジンのみ、/embed/* は allow-list を付与
   const url = new URL(req.url)
   if (url.pathname.startsWith("/embed/")) {
-    const dir = ["'self'", ...origins].join(" ")
-    res.headers.set("Content-Security-Policy", `frame-ancestors ${dir};`)
+    res.headers.set("Content-Security-Policy", "frame-ancestors *;")
+    res.headers.delete("X-Frame-Options")
   } else {
     res.headers.set("Content-Security-Policy", "frame-ancestors 'self';")
   }

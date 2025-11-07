@@ -9,14 +9,6 @@
   --color-gray-100: #f5f5f5;
 }
 
-@layer base {
-  main {
-    max-width: 56rem; /* equivalent to max-w-4xl */
-    margin: 2.5rem auto; /* my-10 mx-auto */
-    padding-inline: 1.5rem; /* px-6 */
-  }
-}
-
 @layer components {
   .card {
     background-color: #fff;

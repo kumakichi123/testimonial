@@ -24,7 +24,7 @@ const Footer = () => {
           ))}
         </div>
         <p className="text-center text-xs text-gray-500 mt-8">
-          &copy; {new Date().getFullYear()} Testimonial SaaS. All Rights Reserved.
+          &copy; {new Date().getFullYear()} テスティモ. All Rights Reserved.
         </p>
       </div>
     </footer>

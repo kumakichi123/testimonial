@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 export type TestimonialItem = {
   id: string;
@@ -79,39 +79,15 @@ function Card({ item }: { item: TestimonialItem }) {
   );
 }
 
-function Summary({ items }: { items: TestimonialItem[] }) {
-  const { total, average } = useMemo(() => {
-    const count = items.length;
-    if (!count) {
-      return { total: 0, average: 0 };
-    }
-    const sum = items.reduce((acc, item) => acc + (item.rating ?? 0), 0);
-    return { total: count, average: Math.round((sum / count) * 10) / 10 };
-  }, [items]);
-
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
-      <span>合計 {total} 件</span>
-      <span className="text-slate-300">/</span>
-      <span>平均</span>
-      <Stars rating={average} />
-      <span className="text-slate-400">({average.toFixed(1)})</span>
-    </div>
-  );
-}
-
 export default function TestimonialWidget({ items }: { items: TestimonialItem[] }) {
   const safeItems = items ?? [];
 
   return (
     <div className="bg-gradient-to-br from-sky-50 via-white to-emerald-50/60 px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white/80 px-6 py-4 shadow-sm shadow-sky-100">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-sky-500">TESTIMONIALS</p>
-            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">お客様の声</h2>
-          </div>
-          <Summary items={safeItems} />
+        <div className="rounded-3xl bg-white/80 px-6 py-4 text-center shadow-sm shadow-sky-100">
+          <p className="text-xs uppercase tracking-[0.2em] text-sky-500">TESTIMONIALS</p>
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">お客様の声</h2>
         </div>
 
         {!safeItems.length ? (

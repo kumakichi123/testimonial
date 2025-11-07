@@ -1,7 +1,7 @@
-import "./globals.css"
+﻿import "./globals.css"
 import LayoutWrapper from "@/LayoutWrapper"
 
-export const metadata = { title: "Testimonial SaaS" }
+export const metadata = { title: "テスティモ" }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -61,6 +61,7 @@ const STATUS_LABELS: Record<MemberRecord["status"], string> = {
 };
 
 const MAX_RATING = 5;
+const PAGE_SIZE = 10;
 const STAR_SOURCE = "★★★★★";
 
 function clsx(...classes: Array<string | false | null | undefined>) {
@@ -296,6 +297,45 @@ function MinusIcon(props: SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
       <path d="M16 10H4" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+
+function PaginationControls({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (nextPage: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const handlePrev = () => onChange(Math.max(1, page - 1));
+  const handleNext = () => onChange(Math.min(totalPages, page + 1));
+
+  return (
+    <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <button
+        type="button"
+        onClick={handlePrev}
+        disabled={page === 1}
+        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        前へ
+      </button>
+      <span className="text-center text-sm font-medium text-slate-500 sm:text-base">
+        {page} / {totalPages} ページ
+      </span>
+      <button
+        type="button"
+        onClick={handleNext}
+        disabled={page === totalPages}
+        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        次へ
+      </button>
+    </div>
   );
 }
 
@@ -628,6 +668,7 @@ export default function Dashboard({
 }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>(TABS[0].id);
+  const [pageIndex, setPageIndex] = useState(1);
   const [previewVersion, setPreviewVersion] = useState(() => Date.now());
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteState, inviteAction] = useFormState(inviteMember, inviteMemberInitialState);
@@ -716,6 +757,22 @@ export default function Dashboard({
     : "";
 
   const safeTestimonials = testimonials ?? [];
+  const totalPages = Math.max(1, Math.ceil(safeTestimonials.length / PAGE_SIZE));
+  const paginatedTestimonials = useMemo(() => {
+    const start = (pageIndex - 1) * PAGE_SIZE;
+    return safeTestimonials.slice(start, start + PAGE_SIZE);
+  }, [safeTestimonials, pageIndex]);
+  useEffect(() => {
+    setPageIndex((prev) => {
+      if (prev > totalPages) return totalPages;
+      if (prev < 1) return 1;
+      return prev;
+    });
+  }, [totalPages]);
+  const handlePageChange = (nextPage: number) => {
+    const clamped = Math.min(totalPages, Math.max(1, nextPage));
+    setPageIndex((prev) => (prev === clamped ? prev : clamped));
+  };
   const safeMembers = members ?? [];
   const normalizedRole = membershipRole ?? "member";
   const isAdmin = normalizedRole === "admin";
@@ -871,9 +928,10 @@ export default function Dashboard({
             />
           ) : (
             <div className="space-y-4">
-              {safeTestimonials.map((testimonial) => (
+              {paginatedTestimonials.map((testimonial) => (
                 <AiTestimonialCard key={testimonial.id} testimonial={testimonial} />
               ))}
+              <PaginationControls page={pageIndex} totalPages={totalPages} onChange={handlePageChange} />
             </div>
           )}
         </div>
@@ -891,9 +949,10 @@ export default function Dashboard({
             />
           ) : (
             <div className="space-y-4">
-              {safeTestimonials.map((testimonial) => (
+              {paginatedTestimonials.map((testimonial) => (
                 <RawTestimonialCard key={testimonial.id} testimonial={testimonial} />
               ))}
+              <PaginationControls page={pageIndex} totalPages={totalPages} onChange={handlePageChange} />
             </div>
           )}
         </div>
@@ -1165,7 +1224,7 @@ export default function Dashboard({
           <header className="flex flex-col gap-6 rounded-3xl border border-slate-100 bg-white/80 p-8 shadow-lg shadow-sky-100 backdrop-blur sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-500">
-                Testimonial Dashboard
+                テスティモ Dashboard
               </p>
               <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{company?.name}</h1>
               {formUrl ? (

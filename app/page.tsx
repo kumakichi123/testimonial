@@ -168,7 +168,7 @@ export default function PestControlLP() {
               {
                 icon: Shield,
                 title: '信頼性が向上',
-                desc: 'リアルなお客様の声で「この業者、信頼できる」と思ってもらえます'
+                desc: '最新のお客様の声で「この業者、信頼できる」と思ってもらえます'
               },
               {
                 icon: Zap,
@@ -301,7 +301,7 @@ export default function PestControlLP() {
                   disabled={loading}
                   className="w-full bg-white text-emerald-600 px-8 py-4 rounded-lg font-bold text-lg transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {loading ? 'Sending...' : 'Join the beta for free'}
+                  {loading ? 'Sending...' : '無料で申し込む'}
                 </button>
 
                 <p className="text-sm text-center text-emerald-100">
@@ -352,10 +352,6 @@ export default function PestControlLP() {
                 a: '意味は変えず、誤字修正と個人情報のマスクのみです。公開前にあなたが確認・承認するので安心です。'
               },
               {
-                q: '解約したらデータはどうなりますか？',
-                a: '解約後もサイトに表示されたままです。ただし新規追加はできなくなります。'
-              },
-              {
                 q: '本当にSEO効果がありますか？',
                 a: 'お客様の声が増えると、Googleが「信頼できるサイト」と判断しやすくなります。ただし即効性はなく、3-6ヶ月かけて徐々に効果が出ます。'
               }
@@ -384,10 +380,6 @@ export default function PestControlLP() {
           >
             今すぐ申し込む
           </button>
-          
-          <div className="mt-12 pt-8 border-t border-slate-800 text-slate-500 text-sm">
-            <p>© 2025 お客様の声自動化ツール. All rights reserved.</p>
-          </div>
         </div>
       </footer>
     </div>
