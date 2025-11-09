@@ -116,7 +116,15 @@ export default function Home() {
         .beta-desc p { font-size: 16px; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9); }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
-        .form-group input { width: 100%; padding: 12px 16px; border: none; border-radius: 8px; font-size: 14px; font-family: 'Noto Sans JP', sans-serif; }
+        .form-group input { 
+          width: 100%; 
+          padding: 12px 16px; 
+          border: none; 
+          border-radius: 8px; 
+          font-size: 14px; 
+          font-family: 'Noto Sans JP', sans-serif;
+          color: #1e293b; // ← これを追加
+        }
         .form-submit { width: 100%; background: white; color: #4f46e5; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s; font-family: 'Noto Sans JP', sans-serif; }
         .form-submit:hover { background: #f1f5f9; }
         .form-note { text-align: center; font-size: 12px; color: rgba(255, 255, 255, 0.8); margin-top: 12px; }
