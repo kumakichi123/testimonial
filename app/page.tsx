@@ -154,16 +154,12 @@ export default function Home() {
             サイトにも営業資料にも最新の信頼の声が反映される。
           </p>
           <div className="hero-buttons">
-            <button className="btn btn-primary" onClick={() => scrollToSection('demo')}>
-              デモを見る
-            </button>
             <button className="btn btn-secondary" onClick={() => scrollToSection('beta')}>
-              無料で試してみる
+              β版に登録する
             </button>
           </div>
           <div className="hero-features">
-            <div><span className="check">✓</span> 設置3分</div>
-            <div><span className="check">✓</span> 月額19,800円</div>
+            <div><span className="check">✓</span> コピペだけで設置</div>
             <div><span className="check">✓</span> β版は永久半額</div>
             <div><span className="check">✓</span> 解約自由</div>
           </div>
@@ -175,7 +171,7 @@ export default function Home() {
           <h2>こんなお悩みありませんか？</h2>
           <div className="problem-list">
             <div className="problem-item">❌ ご葬儀後のアンケートを取っても、サイトに反映できていない</div>
-            <div className="problem-item">❌ お客様の声を営業時に見せたいが、毎回手作業で資料を作っている</div>
+            <div className="problem-item">❌ お客様の声を営業時に見せたいが、うまく作れない</div>
             <div className="problem-item">❌ 見積もり提示時に信頼の証拠を見せる方法がない</div>
             <div className="problem-item">❌ サイトも営業資料も、手動で更新しないといけない</div>
             <div className="problem-item">❌ Googleの口コミはあるが、自社サイトに活かせていない</div>
@@ -185,12 +181,12 @@ export default function Home() {
 
       <section>
         <div className="container">
-          <h2>4ステップで完全自動化</h2>
+          <h2>3ステップで完全自動化</h2>
           <div className="steps">
             <div className="step">
               <div className="step-number">1</div>
               <h3>URL送付</h3>
-              <p>ご遺族様へアンケートURLを送付。1分で完了。</p>
+              <p>ご遺族様へアンケートURLを送付。</p>
             </div>
             <div className="step">
               <div className="step-number">2</div>
@@ -199,11 +195,6 @@ export default function Home() {
             </div>
             <div className="step">
               <div className="step-number">3</div>
-              <h3>2つに分岐</h3>
-              <p>サイト用とPDF用に自動で分岐し、各フォーマットで生成。</p>
-            </div>
-            <div className="step">
-              <div className="step-number">4</div>
               <h3>自動反映</h3>
               <p>承認後、サイトへ掲載＆PDFダウンロード可能に。</p>
             </div>
@@ -341,7 +332,8 @@ export default function Home() {
         <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.9 }}>
           ・見積書に同封してご検討者へ配布<br />
           ・式場見学後のフォローでメール添付<br />
-          ・QRから詳細LPへ誘導（最新の声を随時更新）
+          ・QRから自社サイトへ誘導<br />
+          ・パンフレットにして配布
         </p>
       </div>
     </div>
