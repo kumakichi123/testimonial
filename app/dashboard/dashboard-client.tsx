@@ -24,6 +24,7 @@ import {
   type FormFieldDefinition,
 } from "@/lib/form-schema";
 import { extractResponsePayload, stringifyPayloadValue } from "@/lib/response-payload";
+import QRCode from "qrcode";
 
 const TABS = [
   { id: "ai", label: "AI整形結果" },
@@ -738,6 +739,10 @@ export default function Dashboard({
   });
   const [checkoutPending, startCheckoutTransition] = useTransition();
   const [portalPending, startPortalTransition] = useTransition();
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrGenerating, setQrGenerating] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
   const [autoPublishEnabled, setAutoPublishEnabled] = useState(
     Boolean(company?.auto_publish_high_rating)
   );
@@ -810,6 +815,41 @@ export default function Dashboard({
   const embedCode = embedUrl
     ? `<iframe src="${embedUrl}" style="width:100%;height:500px;border:0;" title="お客様の声"></iframe>`
     : "";
+  const qrDownloadName = company?.slug ? `survey-${company.slug}` : "survey-url";
+  useEffect(() => {
+    if (!isQrModalOpen) return;
+    if (!formUrl) {
+      setQrDataUrl(null);
+      setQrError("フォームURLが見つかりません。");
+      setQrGenerating(false);
+      return;
+    }
+
+    let cancelled = false;
+    setQrGenerating(true);
+    setQrError(null);
+    setQrDataUrl(null);
+
+    QRCode.toDataURL(formUrl, { width: 320, margin: 1 })
+      .then((url) => {
+        if (cancelled) return;
+        setQrDataUrl(url);
+      })
+      .catch((error) => {
+        console.error("QRコード生成エラー", error);
+        if (cancelled) return;
+        setQrError("QRコードの生成に失敗しました。");
+        setQrDataUrl(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setQrGenerating(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formUrl, isQrModalOpen]);
 
   const formSchemaFields = useMemo(
     () => parseFormSchemaFields(company?.form_schema),
@@ -1342,6 +1382,17 @@ export default function Dashboard({
                     {formUrl}
                   </Link>
                   <CopyButton text={formUrl} label="コピー" copiedLabel="コピーしました" />
+                  <button
+                    type="button"
+                    onClick={() => setIsQrModalOpen(true)}
+                    disabled={!formUrl}
+                    className={clsx(
+                      "inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900",
+                      !formUrl && "cursor-not-allowed opacity-50"
+                    )}
+                  >
+                    QRコード表示
+                  </button>
                 </div>
               ) : null}
             </div>
@@ -1389,6 +1440,15 @@ export default function Dashboard({
         onClose={dismissTrialModal}
         onViewPlan={viewPlanFromModal}
         trialEndsAtLabel={trialEndsAtLabel}
+      />
+      <QrModal
+        open={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
+        qrDataUrl={qrDataUrl}
+        generating={qrGenerating}
+        error={qrError}
+        downloadName={qrDownloadName}
+        url={formUrl}
       />
     </>
   );
@@ -1439,6 +1499,70 @@ function TrialModal({
               プラン設定を開く
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QrModal({
+  open,
+  onClose,
+  qrDataUrl,
+  generating,
+  error,
+  downloadName,
+  url,
+}: {
+  open: boolean;
+  onClose: () => void;
+  qrDataUrl: string | null;
+  generating: boolean;
+  error: string | null;
+  downloadName: string;
+  url?: string;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4" aria-modal="true" role="dialog">
+      <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-slate-900">アンケートQRコード</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm font-semibold text-slate-500 transition hover:text-slate-900"
+          >
+            閉じる
+          </button>
+        </div>
+        <div className="mt-6 flex flex-col items-center gap-4">
+          {generating ? (
+            <p className="text-sm text-slate-500">QRコードを生成しています…</p>
+          ) : error ? (
+            <p className="text-sm text-rose-500 text-center">{error}</p>
+          ) : qrDataUrl ? (
+            <img
+              src={qrDataUrl}
+              alt="アンケート QR コード"
+              className="h-48 w-48 rounded-2xl border border-slate-200 object-contain"
+            />
+          ) : (
+            <p className="text-sm text-slate-500 text-center">QRコードの準備中です。</p>
+          )}
+          {qrDataUrl ? (
+            <a
+              href={qrDataUrl}
+              download={`${downloadName}.png`}
+              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-200"
+            >
+              ダウンロード（PNG）
+            </a>
+          ) : null}
+          {url ? (
+            <p className="text-center text-[11px] text-slate-500 break-words">{url}</p>
+          ) : null}
         </div>
       </div>
     </div>
