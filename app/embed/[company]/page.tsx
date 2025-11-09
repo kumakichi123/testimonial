@@ -3,6 +3,11 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import TestimonialWidget, { TestimonialItem } from "./widget";
+import {
+  extractResponsePayload,
+  readPayloadNumber,
+  readPayloadString,
+} from "@/lib/response-payload";
 
 export default async function EmbedPage({
   params,
@@ -31,27 +36,29 @@ export default async function EmbedPage({
   const { data: testimonialsData } = await supa
     .from("testimonials")
     .select(
-      "id, ai_headline, ai_body, published_at, responses(name, rating, created_at)"
+      "id, ai_headline, ai_body, published_at, responses(payload, created_at)"
     )
     .eq("company_id", company.id)
     .eq("is_public", true)
     .order("published_at", { ascending: false, nullsFirst: true });
 
-  const items: TestimonialItem[] = (testimonialsData || []).map((t: any) => ({
-    id: t.id,
-    title: t.ai_headline,
-    body: t.ai_body,
-    name: t.responses?.name,
-    date: (() => {
-      const sourceDate = t.published_at ?? t.responses?.created_at;
-      if (!sourceDate) return undefined;
-      const date = new Date(sourceDate);
-      if (Number.isNaN(date.valueOf())) return undefined;
-      return date.toISOString().split("T")[0];
-    })(),
-    rating: t.responses?.rating,
-  }));
+  const items: TestimonialItem[] = (testimonialsData || []).map((t: any) => {
+    const payload = extractResponsePayload(t.responses);
+    return {
+      id: t.id,
+      title: t.ai_headline,
+      body: t.ai_body,
+      name: readPayloadString(payload, "name"),
+      date: (() => {
+        const sourceDate = t.published_at ?? t.responses?.created_at;
+        if (!sourceDate) return undefined;
+        const date = new Date(sourceDate);
+        if (Number.isNaN(date.valueOf())) return undefined;
+        return date.toISOString().split("T")[0];
+      })(),
+      rating: readPayloadNumber(payload, "rating"),
+    };
+  });
 
   return <TestimonialWidget items={items} />;
 }
-

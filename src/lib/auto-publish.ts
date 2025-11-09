@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  extractResponsePayload,
+  readPayloadNumber,
+} from "@/lib/response-payload";
 
 export type AutoPublishOutcome =
   | { kind: "error"; error: string }
@@ -36,7 +40,7 @@ export async function autoPublishHighRatingTestimonials(
 
   const { data: responses, error: responsesError } = await supabase
     .from("responses")
-    .select("id, rating")
+    .select("id, payload")
     .in("id", responseIds);
 
   if (responsesError) {
@@ -45,8 +49,10 @@ export async function autoPublishHighRatingTestimonials(
 
   const ratingMap = new Map<string, number>();
   for (const response of responses ?? []) {
-    if (typeof response.rating === "number") {
-      ratingMap.set(response.id, response.rating);
+    const payload = extractResponsePayload(response);
+    const rating = readPayloadNumber(payload, "rating");
+    if (typeof rating === "number") {
+      ratingMap.set(response.id, rating);
     }
   }
 

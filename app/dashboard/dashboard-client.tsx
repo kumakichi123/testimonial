@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,12 @@ import {
   createStandardCheckoutSession,
   createBillingPortalSession,
 } from "./actions";
+import {
+  createQuestionAnswerList,
+  parseFormSchemaFields,
+  type FormFieldDefinition,
+} from "@/lib/form-schema";
+import { extractResponsePayload, stringifyPayloadValue } from "@/lib/response-payload";
 
 const TABS = [
   { id: "ai", label: "AI整形結果" },
@@ -28,9 +34,9 @@ const TABS = [
 
 type ResponseRecord = {
   name?: string | null;
-  content?: string | null;
   rating?: number | null;
   created_at?: string | null;
+  payload?: Record<string, unknown> | null;
 };
 
 type TestimonialRecord = {
@@ -94,6 +100,14 @@ function formatDisplayDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return undefined;
   return new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium" }).format(date);
+}
+
+function toTimestamp(value?: string | null) {
+  if (!value) return 0;
+  const date = new Date(value);
+  const time = date.valueOf();
+  if (Number.isNaN(time)) return 0;
+  return time;
 }
 
 function toIsoDate(value?: string | null) {
@@ -339,7 +353,13 @@ function PaginationControls({
   );
 }
 
-function AiTestimonialCard({ testimonial }: { testimonial: TestimonialRecord }) {
+function AiTestimonialCard({
+  testimonial,
+  formSchemaFields,
+}: {
+  testimonial: TestimonialRecord;
+  formSchemaFields: FormFieldDefinition[];
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const rawHeadline = testimonial.ai_headline?.trim() ?? "";
   const rawBody = testimonial.ai_body?.trim() ?? "";
@@ -351,8 +371,15 @@ function AiTestimonialCard({ testimonial }: { testimonial: TestimonialRecord }) 
   const [hasValidationError, setHasValidationError] = useState(false);
   const [hasSaveError, setHasSaveError] = useState(false);
   const [isSaving, startSaving] = useTransition();
+  const rawValuesRef = useRef({ headline: rawHeadline, body: rawBody });
 
-  const name = testimonial.responses?.name?.trim() || "匿名";
+  const payload = extractResponsePayload(testimonial.responses);
+  const questionAnswers = createQuestionAnswerList(payload, formSchemaFields);
+  const nameFromPayload = questionAnswers.find((entry) => entry.key === "name");
+  const name =
+    typeof nameFromPayload?.value === "string" && nameFromPayload.value.trim().length
+      ? nameFromPayload.value.trim()
+      : testimonial.responses?.name?.trim() || "名無し";
   const rating = testimonial.responses?.rating;
   const createdAt = formatDisplayDate(testimonial.responses?.created_at);
   const statusLabel = testimonial.is_public ? "公開中" : "非公開";
@@ -364,12 +391,16 @@ function AiTestimonialCard({ testimonial }: { testimonial: TestimonialRecord }) 
   const displayBody = currentBody || "本文がまだありません";
 
   useEffect(() => {
-    if (!isEditing) {
-      setCurrentHeadline(rawHeadline);
-      setCurrentBody(rawBody);
-      setHeadlineDraft(rawHeadline);
-      setBodyDraft(rawBody);
-    }
+    if (isEditing) return;
+
+    const prev = rawValuesRef.current;
+    if (prev.headline === rawHeadline && prev.body === rawBody) return;
+
+    rawValuesRef.current = { headline: rawHeadline, body: rawBody };
+    setCurrentHeadline(rawHeadline);
+    setCurrentBody(rawBody);
+    setHeadlineDraft(rawHeadline);
+    setBodyDraft(rawBody);
   }, [rawHeadline, rawBody, isEditing]);
 
   const handleStartEditing = () => {
@@ -607,12 +638,23 @@ function AiTestimonialCard({ testimonial }: { testimonial: TestimonialRecord }) 
   );
 }
 
-function RawTestimonialCard({ testimonial }: { testimonial: TestimonialRecord }) {
+function RawTestimonialCard({
+  testimonial,
+  formSchemaFields,
+}: {
+  testimonial: TestimonialRecord;
+  formSchemaFields: FormFieldDefinition[];
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const name = testimonial.responses?.name?.trim() || "匿名";
+  const payload = extractResponsePayload(testimonial.responses);
+  const questionAnswers = createQuestionAnswerList(payload, formSchemaFields);
+  const nameFromPayload = questionAnswers.find((answer) => answer.key === "name");
+  const name =
+    typeof nameFromPayload?.value === "string" && nameFromPayload.value.trim().length
+      ? nameFromPayload.value.trim()
+      : testimonial.responses?.name?.trim() || "名無し";
   const rating = testimonial.responses?.rating;
   const createdAt = formatDisplayDate(testimonial.responses?.created_at);
-  const comment = testimonial.responses?.content?.trim() || "未回答";
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -631,18 +673,26 @@ function RawTestimonialCard({ testimonial }: { testimonial: TestimonialRecord })
           aria-expanded={isExpanded}
         >
           {isExpanded ? <MinusIcon className="h-4 w-4" /> : <PlusIcon className="h-4 w-4" />}
-          <span className="sr-only">{isExpanded ? "詳細を閉じる" : "詳細を開く"}</span>
+          <span className="sr-only">{isExpanded ? "閉じる" : "開く"}</span>
         </button>
       </div>
 
       {isExpanded ? (
         <div className="border-t border-slate-100 bg-white px-6 pb-6 pt-5 sm:px-7">
-          <dl className="space-y-4 text-sm text-slate-700">
-            <div>
-              <dt className="font-semibold text-slate-900">コメント</dt>
-              <dd className="mt-1 whitespace-pre-wrap leading-7">{comment}</dd>
-            </div>
-          </dl>
+          {questionAnswers.length ? (
+            <dl className="space-y-4 text-sm text-slate-700">
+              {questionAnswers.map((answer) => (
+                <div key={answer.key}>
+                  <dt className="font-semibold text-slate-900">{answer.question}</dt>
+                  <dd className="mt-1 whitespace-pre-wrap leading-7">
+                    {stringifyPayloadValue(answer.value) || "未回答"}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-sm leading-7 text-slate-500">回答データがありません。</p>
+          )}
         </div>
       ) : null}
     </article>
@@ -667,6 +717,7 @@ export default function Dashboard({
   currentUserId?: string | null;
 }) {
   const router = useRouter();
+  const SHOW_MEMBER_SETTINGS = false;
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>(TABS[0].id);
   const [pageIndex, setPageIndex] = useState(1);
   const [previewVersion, setPreviewVersion] = useState(() => Date.now());
@@ -678,10 +729,12 @@ export default function Dashboard({
     memberInvite: boolean;
     memberList: boolean;
     plan: boolean;
+    formBuilder: boolean;
   }>({
     memberInvite: true,
     memberList: false,
     plan: false,
+    formBuilder: false,
   });
   const [checkoutPending, startCheckoutTransition] = useTransition();
   const [portalPending, startPortalTransition] = useTransition();
@@ -692,7 +745,9 @@ export default function Dashboard({
   const [autoPublishSettingPending, startAutoPublishSetting] = useTransition();
   const [showTrialModal, setShowTrialModal] = useState(false);
 
-  function toggleSetting(key: "memberInvite" | "memberList" | "plan") {
+  function toggleSetting(
+    key: "memberInvite" | "memberList" | "plan" | "formBuilder"
+  ) {
     setOpenSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
@@ -756,12 +811,25 @@ export default function Dashboard({
     ? `<iframe src="${embedUrl}" style="width:100%;height:500px;border:0;" title="お客様の声"></iframe>`
     : "";
 
+  const formSchemaFields = useMemo(
+    () => parseFormSchemaFields(company?.form_schema),
+    [company?.form_schema]
+  );
+
   const safeTestimonials = testimonials ?? [];
-  const totalPages = Math.max(1, Math.ceil(safeTestimonials.length / PAGE_SIZE));
+  const sortedTestimonials = useMemo(() => {
+    const copy = [...safeTestimonials];
+    copy.sort(
+      (a, b) =>
+        toTimestamp(b.responses?.created_at) - toTimestamp(a.responses?.created_at)
+    );
+    return copy;
+  }, [safeTestimonials]);
+  const totalPages = Math.max(1, Math.ceil(sortedTestimonials.length / PAGE_SIZE));
   const paginatedTestimonials = useMemo(() => {
     const start = (pageIndex - 1) * PAGE_SIZE;
-    return safeTestimonials.slice(start, start + PAGE_SIZE);
-  }, [safeTestimonials, pageIndex]);
+    return sortedTestimonials.slice(start, start + PAGE_SIZE);
+  }, [sortedTestimonials, pageIndex]);
   useEffect(() => {
     setPageIndex((prev) => {
       if (prev > totalPages) return totalPages;
@@ -929,7 +997,11 @@ export default function Dashboard({
           ) : (
             <div className="space-y-4">
               {paginatedTestimonials.map((testimonial) => (
-                <AiTestimonialCard key={testimonial.id} testimonial={testimonial} />
+                <AiTestimonialCard
+                  key={testimonial.id}
+                  testimonial={testimonial}
+                  formSchemaFields={formSchemaFields}
+                />
               ))}
               <PaginationControls page={pageIndex} totalPages={totalPages} onChange={handlePageChange} />
             </div>
@@ -950,7 +1022,11 @@ export default function Dashboard({
           ) : (
             <div className="space-y-4">
               {paginatedTestimonials.map((testimonial) => (
-                <RawTestimonialCard key={testimonial.id} testimonial={testimonial} />
+                <RawTestimonialCard
+                  key={testimonial.id}
+                  testimonial={testimonial}
+                  formSchemaFields={formSchemaFields}
+                />
               ))}
               <PaginationControls page={pageIndex} totalPages={totalPages} onChange={handlePageChange} />
             </div>
@@ -1012,146 +1088,173 @@ export default function Dashboard({
 
       return (
         <div className="space-y-4 p-6 sm:p-8">
-          <SettingsSection
-            title="メンバー招待"
-            description="チームで管理する場合はここから追加します。"
-            open={openSettings.memberInvite}
-            onToggle={() => toggleSetting("memberInvite")}
-          >
-            <div className="space-y-5">
-              {inviteState.status === "success" ? (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  {inviteState.message}
-                </div>
-              ) : null}
-              {inviteState.status === "error" ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  {inviteState.message}
-                </div>
-              ) : null}
-              <form
-                ref={inviteFormRef}
-                action={inviteAction}
-                className={clsx("space-y-4", inviteDisabled && "pointer-events-none opacity-60")}
+          {SHOW_MEMBER_SETTINGS ? (
+            <>
+              <SettingsSection
+                title="メンバー招待"
+                description="チームで管理する場合はここから追加します。"
+                open={openSettings.memberInvite}
+                onToggle={() => toggleSetting("memberInvite")}
               >
-                <input type="hidden" name="companyId" value={company.id} />
-                <div>
-                  <label htmlFor="invite-email" className="text-sm font-semibold text-slate-700">
-                    メールアドレス
-                  </label>
-                  <input
-                    id="invite-email"
-                    name="email"
-                    type="email"
-                    required
-                    value={inviteEmail}
-                    onChange={(event) => setInviteEmail(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                    placeholder="team@example.com"
-                    disabled={inviteDisabled}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="invite-role" className="text-sm font-semibold text-slate-700">
-                    権限
-                  </label>
-                  <select
-                    id="invite-role"
-                    name="role"
-                    defaultValue="editor"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                    disabled={inviteDisabled}
+                <div className="space-y-5">
+                  {inviteState.status === "success" ? (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                      {inviteState.message}
+                    </div>
+                  ) : null}
+                  {inviteState.status === "error" ? (
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                      {inviteState.message}
+                    </div>
+                  ) : null}
+                  <form
+                    ref={inviteFormRef}
+                    action={inviteAction}
+                    className={clsx("space-y-4", inviteDisabled && "pointer-events-none opacity-60")}
                   >
-                    <option value="editor">編集権限</option>
-                    <option value="member">閲覧のみ</option>
-                    <option value="admin">管理者</option>
-                  </select>
+                    <input type="hidden" name="companyId" value={company.id} />
+                    <div>
+                      <label htmlFor="invite-email" className="text-sm font-semibold text-slate-700">
+                        メールアドレス
+                      </label>
+                      <input
+                        id="invite-email"
+                        name="email"
+                        type="email"
+                        required
+                        value={inviteEmail}
+                        onChange={(event) => setInviteEmail(event.target.value)}
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                        placeholder="team@example.com"
+                        disabled={inviteDisabled}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="invite-role" className="text-sm font-semibold text-slate-700">
+                        権限
+                      </label>
+                      <select
+                        id="invite-role"
+                        name="role"
+                        defaultValue="editor"
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                        disabled={inviteDisabled}
+                      >
+                        <option value="editor">編集権限</option>
+                        <option value="member">閲覧のみ</option>
+                        <option value="admin">管理者</option>
+                      </select>
+                    </div>
+                    {inviteDisabled ? (
+                      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+                        メンバー招待は管理者のみ操作できます。
+                      </p>
+                    ) : null}
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={inviteDisabled}
+                        className={clsx(
+                          "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                          inviteDisabled
+                            ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                            : "bg-sky-500 text-white hover:bg-sky-600 focus-visible:outline-sky-500"
+                        )}
+                      >
+                        招待メールを送信
+                      </button>
+                    </div>
+                  </form>
                 </div>
-                {inviteDisabled ? (
-                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
-                    メンバー招待は管理者のみ操作できます。
-                  </p>
-                ) : null}
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={inviteDisabled}
-                    className={clsx(
-                      "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
-                      inviteDisabled
-                        ? "cursor-not-allowed bg-slate-200 text-slate-500"
-                        : "bg-sky-500 text-white hover:bg-sky-600 focus-visible:outline-sky-500"
-                    )}
-                  >
-                    招待メールを送信
-                  </button>
+              </SettingsSection>
+
+              <SettingsSection
+                title="メンバー一覧"
+                description="現在参加しているメンバーの状況です。"
+                open={openSettings.memberList}
+                onToggle={() => toggleSetting("memberList")}
+              >
+                <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white/80 shadow-sm">
+                  {sortedMembers.length ? (
+                    <ul className="divide-y divide-slate-100">
+                      {sortedMembers.map((member) => {
+                        const roleLabel =
+                          ROLE_LABELS[member.role ?? "member"] ?? member.role ?? "member";
+                        const statusLabel = STATUS_LABELS[member.status];
+                        const statusClass =
+                          member.status === "pending"
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-emerald-50 text-emerald-700";
+                        const joinedLabel = member.joinedAt
+                          ? formatDisplayDate(member.joinedAt)
+                          : undefined;
+                        const isSelf = currentUserId ? member.id === currentUserId : false;
+
+                        return (
+                          <li
+                            key={member.id}
+                            className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-semibold text-slate-900">
+                                  {member.email ?? "メール未設定"}
+                                </p>
+                                {isSelf ? (
+                                  <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-600">
+                                    あなた
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="text-xs text-slate-500">
+                                {joinedLabel ? `${statusLabel} · ${joinedLabel}` : statusLabel}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                {roleLabel}
+                              </span>
+                              <span
+                                className={clsx(
+                                  "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+                                  statusClass
+                                )}
+                              >
+                                {statusLabel}
+                              </span>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <div className="px-5 py-8 text-center text-sm text-slate-500">
+                      メンバーがまだ登録されていません。
+                    </div>
+                  )}
                 </div>
-              </form>
-            </div>
-          </SettingsSection>
+              </SettingsSection>
+            </>
+          ) : null}
 
           <SettingsSection
-            title="メンバー一覧"
-            description="現在参加しているメンバーの状況です。"
-            open={openSettings.memberList}
-            onToggle={() => toggleSetting("memberList")}
+            title="アンケートのカスタマイズ"
+            description="使い勝手にあわせて質問の並び順やラベルを調整します。"
+            open={openSettings.formBuilder}
+            onToggle={() => toggleSetting("formBuilder")}
           >
-            <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white/80 shadow-sm">
-              {sortedMembers.length ? (
-                <ul className="divide-y divide-slate-100">
-                  {sortedMembers.map((member) => {
-                    const roleLabel =
-                      ROLE_LABELS[member.role ?? "member"] ?? member.role ?? "member";
-                    const statusLabel = STATUS_LABELS[member.status];
-                    const statusClass =
-                      member.status === "pending"
-                        ? "bg-amber-50 text-amber-700"
-                        : "bg-emerald-50 text-emerald-700";
-                    const joinedLabel = member.joinedAt ? formatDisplayDate(member.joinedAt) : undefined;
-                    const isSelf = currentUserId ? member.id === currentUserId : false;
-
-                    return (
-                      <li
-                        key={member.id}
-                        className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-slate-900">
-                              {member.email ?? "メール未設定"}
-                            </p>
-                            {isSelf ? (
-                              <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-600">
-                                あなた
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="text-xs text-slate-500">
-                            {joinedLabel ? `${statusLabel} · ${joinedLabel}` : statusLabel}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                            {roleLabel}
-                          </span>
-                          <span
-                            className={clsx(
-                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
-                              statusClass
-                            )}
-                          >
-                            {statusLabel}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <div className="px-5 py-8 text-center text-sm text-slate-500">
-                  メンバーがまだ登録されていません。
-                </div>
-              )}
+            <div className="space-y-4">
+              <p className="text-sm text-slate-500">
+                フォームビルダーに移動すると、入力ラベルを編集したり質問の並び替えができます。Dify への出力スキーマも自動で補正されるため、柔軟に調整しながらテストできます。
+              </p>
+              <div className="flex justify-end">
+                <Link
+                  href="/dashboard/form-builder"
+                  className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-slate-900"
+                >
+                  フォームビルダーを開く
+                </Link>
+              </div>
             </div>
           </SettingsSection>
 

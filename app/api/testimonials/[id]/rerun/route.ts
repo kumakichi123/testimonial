@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { parseDifyOutputs } from "@/lib/dify";
+import {
+  extractResponsePayload,
+  readPayloadNumber,
+  stringifyPayloadValue,
+} from "@/lib/response-payload";
+import { createQuestionAnswerList, parseFormSchemaFields } from "@/lib/form-schema";
 
 type RouteParams = { params: { id: string } };
 
 export async function POST(_: Request, { params }: RouteParams) {
-  // server-only creds
   const supa = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // 1) 対象テスティモの取得
   const { data: testimonial, error: testimonialLookupError } = await supa
     .from("testimonials")
     .select("id, response_id, company_id, is_public")
@@ -24,7 +29,6 @@ export async function POST(_: Request, { params }: RouteParams) {
     );
   }
 
-  // 2) 紐づく回答の取得
   const { data: response, error: responseError } = await supa
     .from("responses")
     .select("*")
@@ -38,38 +42,35 @@ export async function POST(_: Request, { params }: RouteParams) {
     );
   }
 
-  // 3) 会社設定の取得（自動公開フラグ）
   const { data: companySettings, error: companyError } = await supa
     .from("companies")
-    .select("auto_publish_high_rating")
+    .select("auto_publish_high_rating, form_schema")
     .eq("id", testimonial.company_id)
     .maybeSingle();
 
   if (companyError) {
-    // ここは致命ではない。ログのみ。
     console.error("[auto-publish] failed to load company settings", companyError);
   }
   const autoPublishEnabled = Boolean(companySettings?.auto_publish_high_rating);
 
-  // 4) Dify の実行
-  const comment = typeof response.content === "string" ? response.content : "";
-
-  const name =
-    typeof response.name === "string" && response.name.trim().length > 0
-      ? response.name.trim()
-      : "匿名";
-  const rating =
-    typeof response.rating === "number" && Number.isFinite(response.rating)
-      ? response.rating
-      : null;
+  const payload = extractResponsePayload(response);
+  const rating = readPayloadNumber(payload, "rating") ?? null;
+  const schemaFields = parseFormSchemaFields(companySettings?.form_schema);
+  const questionAnswers = createQuestionAnswerList(payload, schemaFields);
+  const formPayloadText = JSON.stringify({
+    company_id: response.company_id,
+    response_id: response.id,
+    answers: questionAnswers.map(({ question, value }) => ({
+      question,
+      answer: stringifyPayloadValue(value),
+    })),
+  });
 
   const workflowPayload = {
     user: response.id,
     response_mode: "blocking",
     inputs: {
-      name,
-      rating,
-      comment,
+      form_payload: formPayloadText,
     },
   };
 
@@ -94,30 +95,10 @@ export async function POST(_: Request, { params }: RouteParams) {
     );
   }
 
-  const json = await difyRes.json();
+  const difyJson = await difyRes.json();
+  console.log("[dify] workflow response", difyJson);
 
-  // Dify の出力を安全にパース
-  // 期待形: { data: { outputs: { outputs: '{ "ai_headline": ... }' } } }
-  let outputsRaw: unknown = json?.data?.outputs ?? {};
-
-  if (outputsRaw && typeof outputsRaw === 'object' && 'outputs' in outputsRaw) {
-    outputsRaw = (outputsRaw as { outputs: unknown }).outputs;
-  }
-
-  let outputs: Record<string, unknown>;
-  if (typeof outputsRaw === "string") {
-    try {
-      outputs = JSON.parse(outputsRaw);
-    } catch {
-      outputs = {};
-    }
-  } else if (outputsRaw && typeof outputsRaw === "object") {
-    outputs = outputsRaw as Record<string, unknown>;
-  } else {
-    outputs = {};
-  }
-
-  console.log("Parsed Dify outputs:", outputs);
+  const outputs = parseDifyOutputs(difyJson);
 
   const headline = typeof outputs.ai_headline === "string" ? outputs.ai_headline : "";
   const bodyText = typeof outputs.ai_body === "string" ? outputs.ai_body : "";
@@ -125,13 +106,12 @@ export async function POST(_: Request, { params }: RouteParams) {
     ? (outputs.ai_bullets as string[])
     : [];
 
-  // 5) AI結果を保存
   const { error: updateError } = await supa
     .from("testimonials")
     .update({
       ai_headline: headline,
       ai_body: bodyText,
-      ai_bullets: bullets, // カラム型は jsonb 推奨
+      ai_bullets: bullets,
     })
     .eq("id", params.id);
 
@@ -139,7 +119,6 @@ export async function POST(_: Request, { params }: RouteParams) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  // 6) 自動公開の判定と適用
   const shouldAutoPublish =
     autoPublishEnabled &&
     typeof rating === "number" &&
@@ -160,11 +139,9 @@ export async function POST(_: Request, { params }: RouteParams) {
         testimonialId: params.id,
         error: publishError,
       });
-      // 失敗しても致命ではないので続行
     }
   }
 
-  // 7) 正常終了
   return NextResponse.redirect(
     new URL(
       "/dashboard",

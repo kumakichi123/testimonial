@@ -46,9 +46,12 @@ export async function POST(
     .insert({
       company_id: form.company_id,
       form_id: form.id,
-      name: parsed.name,
-      content: parsed.comment,
-      rating: parsed.rating,
+      payload: {
+        name: parsed.name,
+        comment: parsed.comment,
+        rating: parsed.rating,
+        consent: true,
+      },
     })
     .select("id, company_id")
     .single()
