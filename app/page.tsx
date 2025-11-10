@@ -261,78 +261,102 @@ export default function Home() {
       }}
     >
       <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-        <iframe
-          title="営業資料プレビュー"
-          srcDoc={`<!DOCTYPE html>
+<iframe
+  title="営業資料プレビュー"
+  srcDoc={`<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>葬儀社 営業資料</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Noto Sans JP', 'Segoe UI', sans-serif; line-height: 1.6; color: #2c3e50; background: #f5f5f5; }
-    .page { width: 210mm; height: 297mm; margin: 10px auto; background: white; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); page-break-after: always; }
-    .header { text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 30px; }
-    .company-name { font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 5px; }
-    .subtitle { color: #64748b; font-size: 14px; }
-    .section-title { font-size: 18px; font-weight: bold; color: #1e293b; margin-top: 25px; margin-bottom: 15px; border-left: 4px solid #6366f1; padding-left: 10px; }
-    .testimonial-section { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-    .testimonial { background: white; padding: 15px; margin-bottom: 12px; border-left: 4px solid #6366f1; border-radius: 4px; }
-    .testimonial-text { color: #2c3e50; font-size: 14px; margin-bottom: 8px; line-height: 1.7; }
-    .testimonial-meta { font-size: 12px; color: #64748b; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-    .stat-box { background: #eef2ff; padding: 15px; border-radius: 8px; text-align: center; }
-    .stat-number { font-size: 28px; font-weight: bold; color: #6366f1; margin-bottom: 5px; }
-    .stat-label { font-size: 13px; color: #64748b; }
-    .footer { margin-top: 40px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; font-size: 11px; color: #94a3b8; }
-    .qr-section { text-align: center; margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 8px; }
-    .qr-box { width: 120px; height: 120px; margin: 0 auto 10px; background: #e2e8f0; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px; border-radius: 4px; }
-    .qr-label { font-size: 12px; color: #64748b; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans JP','Segoe UI',sans-serif;line-height:1.6;color:#1f2937;background:#f5f5f5}
+    .page{width:210mm;height:297mm;margin:10px auto;background:#fff;padding:40px;box-shadow:0 0 10px rgba(0,0,0,.1)}
+    .header{text-align:center;border-bottom:3px solid #6366f1;padding-bottom:16px;margin-bottom:18px}
+    .company-name{font-size:24px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .subtitle{color:#64748b;font-size:14px}
+    .hero{width:100%;height:80mm;margin:14px 0 18px;overflow:hidden;border-radius:8px}
+    .hero img{width:100%;height:100%;object-fit:cover;filter:saturate(.9)}
+    .section-title{font-size:18px;font-weight:700;color:#1e293b;margin:10px 0 12px;border-left:4px solid #6366f1;padding-left:10px}
+    .testimonial-wrap{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;align-items:start}
+    .detail{width:100%;max-height:55mm;overflow:hidden;border:1px solid #e2e8f0;border-radius:8px;background:#fff}
+    .detail img{width:100%;height:100%;object-fit:cover;filter:saturate(.9) contrast(1.02)}
+    .testimonial-section{background:#f8fafc;padding:20px;border-radius:8px}
+    .testimonial{background:#fff;padding:15px;margin-bottom:12px;border-left:4px solid #6366f1;border-radius:4px}
+    .testimonial-text{color:#1f2937;font-size:14px;margin-bottom:8px;line-height:1.7}
+    .testimonial-meta{font-size:12px;color:#64748b}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:18px 0}
+    .stat-box{background:#eef2ff;padding:15px;border-radius:8px;text-align:center}
+    .stat-number{font-size:28px;font-weight:700;color:#6366f1;margin-bottom:5px}
+    .stat-label{font-size:13px;color:#64748b}
+    /* ▼ 箇条書きのズレ解消：左端を見出しと揃える */
+    .features{margin:0;padding-left:1.2em;list-style-position:outside}
+    .features li{margin:0 0 8px}
+    .qr-section{text-align:center;margin-top:16px;padding:16px;background:#f8fafc;border-radius:8px}
+    .qr-box{width:120px;height:120px;margin:0 auto 10px;background:#e2e8f0;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;border-radius:4px}
+    .qr-label{font-size:12px;color:#64748b}
+    .footer{margin-top:24px;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px;font-size:11px;color:#94a3b8}
   </style>
 </head>
 <body>
-<div class="page">
-  <div class="header">
-    <div class="company-name">○○葬儀社</div>
-    <div class="subtitle">選ばれる理由</div>
-  </div>
-  <div class="section-title">ご遺族様からの声</div>
-  <div class="testimonial-section">
-    <div class="testimonial">
-      <div class="testimonial-text">「突然のことで戸惑っていましたが、担当者の方が丁寧に対応してくれて安心できました。細かい要望にも応じてくださり、父もきっと喜んでいると思います。」</div>
-      <div class="testimonial-meta">60代 ご遺族様（2025年2月）</div>
+  <div class="page">
+    <div class="header">
+      <div class="company-name">○○葬儀社</div>
+      <div class="subtitle">選ばれる理由</div>
     </div>
-    <div class="testimonial">
-      <div class="testimonial-text">「説明が分かりやすく、相談しやすい雰囲気でした。急いでいる中でも親身に対応いただき、本当に感謝しています。」</div>
-      <div class="testimonial-meta">50代 ご遺族様（2025年1月）</div>
+
+    <figure class="hero">
+      <img src="/images/chapel-interior.jpg" alt="式場内観の横長写真">
+    </figure>
+
+    <div class="section-title">ご遺族様からの声</div>
+    <div class="testimonial-wrap">
+      <div class="testimonial-section">
+        <div class="testimonial">
+          <div class="testimonial-text">「突然のことで戸惑っていましたが、担当者の方が丁寧に対応してくれて安心できました。細かい要望にも応じてくださり、父もきっと喜んでいると思います。」</div>
+          <div class="testimonial-meta">60代 ご遺族様（2025年2月）</div>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial-text">「説明が分かりやすく、相談しやすい雰囲気でした。急いでいる中でも親身に対応いただき、本当に感謝しています。」</div>
+          <div class="testimonial-meta">50代 ご遺族様（2025年1月）</div>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial-text">「葬儀の流れから故人の想いに沿ったプラン提案まで、全てにおいて満足できました。スタッフさんの心遣いが素晴らしかったです。」</div>
+          <div class="testimonial-meta">70代 ご遺族様（2024年12月）</div>
+        </div>
+      </div>
+      <figure class="detail">
+        <img src="/images/altar-detail.jpg" alt="祭壇と供花のディテール写真">
+      </figure>
     </div>
-    <div class="testimonial">
-      <div class="testimonial-text">「葬儀の流れから故人の想いに沿ったプラン提案まで、全てにおいて満足できました。スタッフさんの心遣いが素晴らしかったです。」</div>
-      <div class="testimonial-meta">70代 ご遺族様（2024年12月）</div>
+
+    <div class="stats">
+      <div class="stat-box"><div class="stat-number">98%</div><div class="stat-label">ご遺族様満足度</div></div>
+      <div class="stat-box"><div class="stat-number">25年</div><div class="stat-label">地域密着の実績</div></div>
     </div>
+
+    <div class="section-title">当社の特徴</div>
+    <ul class="features">
+      <li>24時間対応・急なご依頼にも即座に対応</li>
+      <li>葬儀プランは10万円～対応可能</li>
+      <li>故人様のご意思を尊重した自由なプラン設計</li>
+      <li>法務相談・供花手配・返礼品選定まで一括サポート</li>
+    </ul>
+
+    <div class="qr-section">
+      <div class="qr-box">QRコード</div>
+      <div class="qr-label">詳しくはこちら</div>
+    </div>
+
+    <div class="footer">© 2025 ○○葬儀社 | 本資料はご遺族様のアンケートから自動生成されました</div>
   </div>
-  <div class="stats">
-    <div class="stat-box"><div class="stat-number">98%</div><div class="stat-label">ご遺族様満足度</div></div>
-    <div class="stat-box"><div class="stat-number">25年</div><div class="stat-label">地域密着の実績</div></div>
-  </div>
-  <div class="section-title">当社の特徴</div>
-  <ul style="margin-left: 20px; font-size: 14px; line-height: 2;">
-    <li>24時間対応・急なご依頼にも即座に対応</li>
-    <li>葬儀プランは10万円～対応可能</li>
-    <li>故人様のご意思を尊重した自由なプラン設計</li>
-    <li>法務相談・供花手配・返礼品選定まで一括サポート</li>
-  </ul>
-  <div class="qr-section">
-    <div class="qr-box">QRコード</div>
-    <div class="qr-label">詳しくはこちら</div>
-  </div>
-  <div class="footer">© 2025 ○○葬儀社 | 本資料はご遺族様のアンケートから自動生成されました</div>
-</div>
 </body>
 </html>`}
-          style={{ width: '100%', height: 500, border: 0 }}
-        />
+  style={{ width: '100%', height: 500, border: 0 }}
+/>
+
+
       </div>
 
       <div className="card">
@@ -355,14 +379,14 @@ export default function Home() {
             <div className="pricing-badge">β版モニター 永久半額 50% OFF</div>
             <div className="pricing-title">β版モニタープラン</div>
             <div className="price-display">
-              <span className="price-amount">¥9,900</span>
+              <span className="price-amount">¥4,980</span>
               <span className="price-period">/月</span>
             </div>
             <div className="price-note">
-              通常 <span className="normal">¥19,800/月</span>
+              通常 <span className="normal">¥9,960/月</span>
               <span className="limited">先着10社</span>
             </div>
-            <p className="price-note-line">永年¥9,900/月・解約自由</p>
+            <p className="price-note-line">永年¥4,980/月・解約自由</p>
 
             <ul className="feature-list">
               <li><span className="checkmark">✓</span> アンケートURL無制限発行</li>
@@ -376,7 +400,7 @@ export default function Home() {
               <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => scrollToSection('beta')}>
                 今すぐ申し込む
               </button>
-              <p className="disclaimer">※ β参加企業は解約しない限りずっと¥9,900/月。いつでも解約可</p>
+              <p className="disclaimer">※ β参加企業は解約しない限りずっと¥4,980/月。いつでも解約可</p>
             </div>
           </div>
         </div>
@@ -471,7 +495,7 @@ export default function Home() {
       <footer>
         <div className="container">
           <h3>ご遺族様の声を、信頼の証に。</h3>
-          <p>β版モニター募集中（先着10社・永久半額／通常¥19,800→¥9,900）</p>
+          <p>β版モニター募集中（先着10社・永久半額／通常¥9,960→¥4,980）</p>
           <button className="btn btn-primary" onClick={() => scrollToSection('beta')}>
             今すぐ申し込む
           </button>
