@@ -33,7 +33,7 @@ export default function Form({ slug }: { slug: string }) {
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-500">
             Voice Survey
           </p>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">お客様の声アンケート</h1>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">ご遺族様の声アンケート</h1>
           <p className="text-sm text-slate-500 sm:text-base">
             すべての項目にご回答いただくことで、より良いサービスづくりに活かさせていただきます。
           </p>

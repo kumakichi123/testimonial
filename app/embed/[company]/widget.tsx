@@ -87,7 +87,7 @@ export default function TestimonialWidget({ items }: { items: TestimonialItem[] 
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="rounded-3xl bg-white/80 px-6 py-4 text-center shadow-sm shadow-sky-100">
           <p className="text-xs uppercase tracking-[0.2em] text-sky-500">TESTIMONIALS</p>
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">お客様の声</h2>
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">ご遺族様の声</h2>
         </div>
 
         {!safeItems.length ? (

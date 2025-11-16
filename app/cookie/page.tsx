@@ -41,7 +41,7 @@ const CookiePolicyPage = () => (
     <header className="space-y-4">
       <h1 className="text-3xl font-semibold text-gray-900">クッキーポリシー</h1>
       <p className="text-gray-600">
-        SaaS「テスティモ」ではCookieを活用し、より良いサービス体験を提供しています。本ポリシーではその取扱いについてご説明します。
+        SaaS「ノーテリア」ではCookieを活用し、より良いサービス体験を提供しています。本ポリシーではその取扱いについてご説明します。
       </p>
     </header>
     <section className="space-y-10">

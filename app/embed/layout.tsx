@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "お客様の声",
+  title: "ご遺族様の声",
 };
 
 export default function EmbedLayout({

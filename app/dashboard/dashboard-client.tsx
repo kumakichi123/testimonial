@@ -813,7 +813,7 @@ export default function Dashboard({
       ? `${appUrl}/embed/${company.slug}?token=${company.iframe_token}`
       : undefined;
   const embedCode = embedUrl
-    ? `<iframe src="${embedUrl}" style="width:100%;height:500px;border:0;" title="お客様の声"></iframe>`
+    ? `<iframe src="${embedUrl}" style="width:100%;height:500px;border:0;" title="ご遺族様の声"></iframe>`
     : "";
   const qrDownloadName = company?.slug ? `survey-${company.slug}` : "survey-url";
   useEffect(() => {
@@ -1032,7 +1032,7 @@ export default function Dashboard({
           {!safeTestimonials.length ? (
             <EmptyState
               title="まだ整形済みのデータがありません"
-              description="アンケートに回答が集まると、AI整形されたお客様の声がここに並びます。"
+              description="アンケートに回答が集まると、AI整形されたご遺族様の声がここに並びます。"
             />
           ) : (
             <div className="space-y-4">
@@ -1091,7 +1091,7 @@ export default function Dashboard({
         <div className="space-y-6 p-6 sm:p-8">
           <div>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">
-              公開中の「お客様の声」を自社サイトに埋め込み表示できます。
+              公開中の「ご遺族様の声」を自社サイトに埋め込み表示できます。
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
               下のコードをサイトのHTML（表示したい場所）にそのまま貼り付けてください。
@@ -1367,7 +1367,7 @@ export default function Dashboard({
           <header className="flex flex-col gap-6 rounded-3xl border border-slate-100 bg-white/80 p-8 shadow-lg shadow-sky-100 backdrop-blur sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-500">
-                テスティモ Dashboard
+                ノーテリア Dashboard
               </p>
               <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{company?.name}</h1>
               {formUrl ? (

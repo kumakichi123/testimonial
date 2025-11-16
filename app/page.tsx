@@ -158,7 +158,7 @@ export default function Home() {
             <span className="hero-highlight">サイトと営業に自動反映</span>
           </h1>
           <p className="hero-desc">
-            アンケート収集→AI整形→お客様の声とPDF自動生成。<br />
+            アンケート収集→AI整形→ご遺族様の声とPDF自動生成。<br />
             サイトにも営業資料にも最新の信頼の声が反映される。
           </p>
           <div className="hero-buttons">
@@ -179,7 +179,7 @@ export default function Home() {
           <h2>こんなお悩みありませんか？</h2>
           <div className="problem-list">
             <div className="problem-item">❌ ご葬儀後のアンケートを取っても、サイトに反映できていない</div>
-            <div className="problem-item">❌ お客様の声を営業時に見せたいが、うまく作れない</div>
+            <div className="problem-item">❌ ご遺族様の声を営業時に見せたいが、うまく作れない</div>
             <div className="problem-item">❌ 見積もり提示時に信頼の証拠を見せる方法がない</div>
             <div className="problem-item">❌ サイトも営業資料も、手動で更新しないといけない</div>
             <div className="problem-item">❌ Googleの口コミはあるが、自社サイトに活かせていない</div>
@@ -211,7 +211,7 @@ export default function Home() {
       </section>
 <section id="voices" className="section">
   <div className="container">
-    <h2>お客様の声の表示例</h2>
+    <h2>ご遺族様の声の表示例</h2>
 
     {/* 参考イメージのみ表示（iframeは削除） */}
     <figure
@@ -225,7 +225,7 @@ export default function Home() {
       {/* public/ 配下は /images/ で参照する */}
       <img
         src="/images/voices-sample.jpg"
-        alt="お客様の声の表示例（参考画像）"
+        alt="ご遺族様の声の表示例（参考画像）"
         style={{ display: 'block', width: '100%', height: 'auto' }}
       />
       <figcaption
@@ -423,7 +423,7 @@ export default function Home() {
                     type="text"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    placeholder="株式会社テスティモ葬祭"
+                    placeholder="株式会社ノーテリア葬祭"
                     required
                   />
                 </div>

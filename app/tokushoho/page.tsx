@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "特定商取引法に基づく表記 | テスティモ",
-  description: "SaaS「テスティモ」に関する特定商取引法に基づく表記を掲載しています。",
+  title: "特定商取引法に基づく表記 | ノーテリア",
+  description: "SaaS「ノーテリア」に関する特定商取引法に基づく表記を掲載しています。",
 }
 
 const records = [
-  { label: "事業者名", value: "テスティモ" },
+  { label: "事業者名", value: "ノーテリア" },
   { label: "運営責任者", value: "朝部 耀平" },
   { label: "所在地", value: "北海道札幌市北区北18条西6-1-7-201" },
   { label: "電話番号", value: "070-3619-7051" },
@@ -17,7 +17,7 @@ const records = [
   { label: "販売価格", value: "各サービスの紹介ページに税込価格を表示しています。" },
   {
     label: "商品代金以外の必要料金",
-    value: "インターネット接続に伴う通信料や振込手数料はお客様のご負担となります。",
+    value: "インターネット接続に伴う通信料や振込手数料はご遺族様のご負担となります。",
   },
   {
     label: "支払方法・支払時期",
@@ -35,7 +35,7 @@ const TokushohoPage = () => (
     <header className="space-y-4">
       <h1 className="text-3xl font-semibold text-gray-900">特定商取引法に基づく表記</h1>
       <p className="text-gray-600">
-        SaaS「テスティモ」の提供に関し、特定商取引法第11条に基づく表記を以下の通り掲載します。
+        SaaS「ノーテリア」の提供に関し、特定商取引法第11条に基づく表記を以下の通り掲載します。
       </p>
     </header>
     <section className="space-y-6">

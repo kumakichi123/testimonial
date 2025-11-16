@@ -67,7 +67,7 @@ const ContactPage = () => {
       <header className="space-y-4">
         <h1 className="text-3xl font-semibold text-gray-900">お問い合わせ</h1>
         <p className="text-gray-600 leading-relaxed">
-          テスティモに関するご質問や導入のご相談、資料請求などは以下のフォームよりお気軽にお問い合わせください。担当者が内容を確認のうえ、順次ご連絡いたします。
+          ノーテリアに関するご質問や導入のご相談、資料請求などは以下のフォームよりお気軽にお問い合わせください。担当者が内容を確認のうえ、順次ご連絡いたします。
         </p>
         <p className="text-sm text-gray-500">
           お預かりする個人情報の取扱いについては
